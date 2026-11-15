@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>半导体可靠性计算平台</title>
+  <meta name="description" content="MTBF、Duane 可靠性增长、试验样本量计算，含用户认证、历史记录与 CSV/Excel 导出。">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark app-navbar sticky-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="#" data-view="home">
+      <i class="bi bi-cpu"></i>
+      <span>半导体可靠性计算平台</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-label="切换导航">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMain">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link active" href="#" data-view="home">计算器</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" data-view="history">历史记录</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" data-view="about">方法与标准</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <span class="quota-pill" id="quota-pill" title="今日剩余免费计算次数">
+          <i class="bi bi-speedometer2"></i><span id="quota-text">—</span>
+        </span>
+        <div id="auth-area">
+          <button class="btn btn-sm btn-light" id="btn-login">登录 / 注册</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container hero-inner">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        <span class="hero-eyebrow"><i class="bi bi-activity"></i> SEMICONDUCTOR RELIABILITY</span>
+        <h1>把可靠性指标算准，<br>把试验方案定清楚</h1>
+        <p class="hero-sub">面向半导体器件与模组的可靠性计算工具：MTBF 与失效率、Duane 可靠性增长、可靠性演示试验样本量。所有结果给出公式、假设与置信区间。</p>
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-accent" data-view="home">开始计算 <i class="bi bi-arrow-right"></i></button>
+          <button class="btn btn-outline-light" data-view="about">查看方法与标准</button>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="hero-metrics">
+          <div class="hero-metric">
+            <span class="metric-value">3</span>
+            <span class="metric-label">核心计算模型</span>
+          </div>
+          <div class="hero-metric">
+            <span class="metric-value">χ²</span>
+            <span class="metric-label">精确置信区间</span>
+          </div>
+          <div class="hero-metric">
+            <span class="metric-value">3</span>
+            <span class="metric-label">导出格式</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="container app-main">
+
+  <!-- ============================ 计算器列表 ============================ -->
+  <section id="view-home">
+    <div class="section-head">
+      <h2>选择计算器</h2>
+      <p>输入试验数据即可得到结果，登录后可保存记录并批量导出。</p>
+    </div>
+    <div class="row g-4" id="calculator-grid">
+      <div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>
+    </div>
+  </section>
+
+  <!-- ============================ 单个计算器 ============================ -->
+  <section id="view-calculator" class="d-none">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <button class="btn btn-link p-0 back-link" data-view="home"><i class="bi bi-arrow-left"></i> 返回计算器列表</button>
+      <span class="badge category-badge" id="calc-category">—</span>
+    </div>
+    <div class="row g-4">
+      <div class="col-xl-5">
+        <div class="card panel form-panel">
+          <div class="card-body">
+            <h3 id="calc-title">—</h3>
+            <p class="text-muted small mb-3" id="calc-desc"></p>
+            <form id="calc-form" novalidate></form>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              <button type="button" class="btn btn-primary" id="btn-calc">
+                <span class="spinner-border spinner-border-sm d-none me-1" id="calc-spinner"></span>计算
+              </button>
+              <button type="button" class="btn btn-outline-secondary" id="btn-example">载入示例</button>
+              <button type="button" class="btn btn-outline-secondary" id="btn-clear">清空</button>
+              <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-download"></i> 导出
+                </button>
+                <ul class="dropdown-menu">
+                  <li><button class="dropdown-item" type="button" data-export="xlsx"><i class="bi bi-file-earmark-excel me-2"></i>Excel 报告 (.xlsx)</button></li>
+                  <li><button class="dropdown-item" type="button" data-export="csv"><i class="bi bi-filetype-csv me-2"></i>CSV 报告 (.csv)</button></li>
+                  <li><button class="dropdown-item" type="button" data-export="json"><i class="bi bi-filetype-json me-2"></i>JSON 数据 (.json)</button></li>
+                </ul>
+              </div>
+            </div>
+            <div class="alert alert-danger mt-3 d-none" id="form-error"></div>
+            <p class="text-muted small mt-3 mb-0" id="calc-standards"></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-7">
+        <div class="empty-state" id="result-empty">
+          <i class="bi bi-calculator"></i>
+          <h5>等待计算</h5>
+          <p>填写左侧参数后点击「计算」，结果会显示在这里。</p>
+        </div>
+        <div id="result-panel" class="d-none">
+          <div class="row g-3" id="result-headline"></div>
+          <div class="card panel mt-3 d-none" id="result-chart-wrap">
+            <div class="card-body">
+              <h6 class="chart-title" id="chart-title"></h6>
+              <div class="chart-holder"><canvas id="result-chart"></canvas></div>
+            </div>
+          </div>
+          <div id="result-tables" class="mt-3"></div>
+          <div class="alert note-box mt-3 d-none" id="result-notes"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 历史记录 ============================ -->
+  <section id="view-history" class="d-none">
+    <div class="section-head d-flex flex-wrap justify-content-between align-items-end gap-2">
+      <div>
+        <h2>历史记录</h2>
+        <p class="mb-0">登录后每次计算都会自动存档，可回看、复用参数或批量导出。</p>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm" id="btn-history-refresh"><i class="bi bi-arrow-clockwise"></i> 刷新</button>
+        <div class="dropdown">
+          <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-download"></i> 导出全部
+          </button>
+          <ul class="dropdown-menu">
+            <li><button class="dropdown-item" type="button" data-history-export="xlsx">Excel (.xlsx)</button></li>
+            <li><button class="dropdown-item" type="button" data-history-export="csv">CSV (.csv)</button></li>
+            <li><button class="dropdown-item" type="button" data-history-export="json">JSON (.json)</button></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="card panel">
+      <div class="card-body p-0">
+        <div id="history-body">
+          <div class="empty-state"><i class="bi bi-inbox"></i><h5>暂无记录</h5><p>登录后开始计算，记录会自动出现在这里。</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 方法与标准 ============================ -->
+  <section id="view-about" class="d-none">
+    <div class="section-head">
+      <h2>方法与标准</h2>
+      <p>每个结果都在这一点上保持透明：用了什么模型、什么公式、什么假设。</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card panel h-100">
+          <div class="card-body">
+            <h5><i class="bi bi-graph-up-arrow me-2"></i>MTBF 与失效率</h5>
+            <p class="text-muted small">假定失效率恒定（指数分布），由失效数与总器件小时估计。</p>
+            <pre class="formula">λ = r / T
+MTBF = 1 / λ = T / r
+FIT = λ × 10⁹
+R(t) = e^(-t/MTBF)</pre>
+            <ul class="small text-muted ps-3">
+              <li>双侧区间：2T/χ²(1-α/2, 2r+2) ~ 2T/χ²(α/2, 2r)</li>
+              <li>零失效时 MTBF 点估计为 ∞，应引用单侧下限</li>
+              <li>FIT 口径见 JEDEC JEP150</li>
+            </ul>
+            <div class="d-flex flex-wrap gap-1">
+              <span class="badge std-badge">MIL-HDBK-781A</span>
+              <span class="badge std-badge">JEDEC JEP150</span>
+              <span class="badge std-badge">IEC 61709</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card panel h-100">
+          <div class="card-body">
+            <h5><i class="bi bi-graph-up me-2"></i>Duane 可靠性增长</h5>
+            <p class="text-muted small">累计 MTBF 与累计试验时间在双对数坐标上呈线性关系。</p>
+            <pre class="formula">M_c(T) = α · T^β
+M_i(T) = M_c(T) / (1-β)
+增长率 = 1 - β</pre>
+            <ul class="small text-muted ps-3">
+              <li>β 由 ln M_c 对 ln T 最小二乘回归得到</li>
+              <li>瞬时 MTBF 才是工程当前水平，累计 MTBF 含历史平均</li>
+              <li>预测区间在 log 空间按 t 分布计算再取指数</li>
+            </ul>
+            <div class="d-flex flex-wrap gap-1">
+              <span class="badge std-badge">MIL-HDBK-189</span>
+              <span class="badge std-badge">MIL-HDBK-781A</span>
+              <span class="badge std-badge">IEC 61014</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card panel h-100">
+          <div class="card-body">
+            <h5><i class="bi bi-clipboard-data me-2"></i>试验样本量</h5>
+            <p class="text-muted small">按目标可靠度或目标 MTBF 与置信水平反算样本量与试验时间。</p>
+            <pre class="formula">零失效：n = ln(1-C) / ln(R)
+定时截尾：T = θ0·χ²(1-C, 2c+2)/2
+定数截尾：T = θ0·χ²(1-C, 2c)/2</pre>
+            <ul class="small text-muted ps-3">
+              <li>允许失效时用二项精确 CDF 求最小样本量</li>
+              <li>给出单台时长即可把总时间换算成台数</li>
+              <li>方案对比表列出 c=0~5 的差异</li>
+            </ul>
+            <div class="d-flex flex-wrap gap-1">
+              <span class="badge std-badge">IEC 61124</span>
+              <span class="badge std-badge">MIL-HDBK-781A</span>
+              <span class="badge std-badge">GJB 899A</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="alert alert-warning mt-4 mb-0">
+      <i class="bi bi-exclamation-triangle me-1"></i>
+      本工具用于工程估算与方案比较，不替代认证试验或正式可靠性报告；引用标准仅表示方法出处，不代表任何形式的合规认证。
+    </div>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <div class="container d-flex flex-wrap justify-content-between gap-2">
+    <span>半导体可靠性计算平台 · FastAPI + Bootstrap</span>
+    <span><a href="/docs" target="_blank" rel="noopener">API 文档</a> · <a href="/api/health" target="_blank" rel="noopener">服务状态</a></span>
+  </div>
+</footer>
+
+<!-- ============================ 登录 / 注册 ============================ -->
+<div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="auth-modal-title">登录</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="nav nav-pills nav-justified mb-3" id="auth-tabs">
+          <li class="nav-item"><button class="nav-link active" data-auth-tab="login">登录</button></li>
+          <li class="nav-item"><button class="nav-link" data-auth-tab="register">注册</button></li>
+        </ul>
+        <form id="auth-form" novalidate>
+          <div class="mb-3">
+            <label class="form-label" for="auth-email">邮箱</label>
+            <input type="email" class="form-control" id="auth-email" autocomplete="username" required>
+          </div>
+          <div class="mb-3 d-none" id="auth-username-group">
+            <label class="form-label" for="auth-username">显示名（可选）</label>
+            <input type="text" class="form-control" id="auth-username" autocomplete="nickname" maxlength="64">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="auth-password">口令</label>
+            <input type="password" class="form-control" id="auth-password" autocomplete="current-password" required minlength="8">
+            <div class="form-text" id="auth-password-hint"></div>
+          </div>
+          <div class="alert alert-danger d-none" id="auth-error"></div>
+          <button class="btn btn-primary w-100" type="submit" id="auth-submit">登录</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ 记录详情 ============================ -->
+<div class="modal fade" id="recordModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="record-title">记录详情</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body" id="record-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
+        <button class="btn btn-primary" id="btn-record-load">载入到计算器</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container position-fixed top-0 end-0 p-3" id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
